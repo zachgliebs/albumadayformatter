@@ -1,26 +1,105 @@
-<!-- index.html -->
+<!-- index.html (standalone, works on GitHub Pages) -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Album of the Day Formatter</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2em; max-width: 600px; margin: auto; }
+    form { margin-bottom: 1em; }
+    textarea { width: 100%; }
+    button { margin-top: 0.5em; }
+  </style>
+</head>
 <body>
   <form id="albumForm">
     <input name="artist" placeholder="Artist" required>
     <input name="album" placeholder="Album" required>
     <input name="favoriteSongs" placeholder="Favorite Songs (comma-separated)" required>
     <input name="leastFavoriteSong" placeholder="Least Favorite Song" required>
-    <input name="number" type="number" placeholder="Number" required>
+    <input name="number" placeholder="Number" required>
     <button type="submit">Generate Output</button>
   </form>
   <textarea id="resultBox" rows="10" cols="60" readonly></textarea>
+  <button id="downloadBtn" type="button" data-cover="">Download Album Cover</button>
+
   <script>
+    let coverUrl = "";
+
     document.getElementById('albumForm').onsubmit = async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      const body = Object.fromEntries(formData.entries());
-      const res = await fetch('/albumInfo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const { output } = await res.json();
-      document.getElementById('resultBox').value = output || "Album not found.";
+      const artist = formData.get('artist');
+      const album = formData.get('album');
+      const favoriteSongs = formData.get('favoriteSongs');
+      const leastFavoriteSong = formData.get('leastFavoriteSong');
+      const number = formData.get('number');
+
+      // First, search for the album to get its collectionId
+      const searchTerm = encodeURIComponent(`${artist} ${album}`);
+      const apiUrl = `https://itunes.apple.com/search?term=${searchTerm}&entity=album&limit=1`;
+
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+
+      if (data.resultCount === 0) {
+        document.getElementById('resultBox').value = "Album not found.";
+        coverUrl = "";
+        document.getElementById('downloadBtn').setAttribute('data-cover', '');
+        return;
+      }
+
+      const albumInfo = data.results[0];
+      const collectionId = albumInfo.collectionId;
+
+      // Now get all album tracks for runtime
+      const tracksRes = await fetch(`https://itunes.apple.com/lookup?id=${collectionId}&entity=song`);
+      const tracksData = await tracksRes.json();
+
+      if (tracksData.resultCount === 0 || tracksData.results.length <= 1) {
+        document.getElementById('resultBox').value = "No tracks found for album.";
+        coverUrl = "";
+        document.getElementById('downloadBtn').setAttribute('data-cover', '');
+        return;
+      }
+
+      // tracksData.results[0] is the album, tracksData.results[1...] are songs
+      const trackDurations = tracksData.results.slice(1).map(tr => tr.trackTimeMillis || 0);
+      const totalMillis = trackDurations.reduce((sum, v) => sum + v, 0);
+      const runtime = Math.floor(totalMillis / 60000); // minutes
+      const trackCount = trackDurations.length;
+
+      coverUrl = albumInfo.artworkUrl100.replace('100x100bb', '600x600bb');
+      document.getElementById('downloadBtn').setAttribute('data-cover', coverUrl);
+
+      const output =
+`Album of the Day: ${album} - ${artist}
+Genre: ${albumInfo.primaryGenreName}
+Runtime: ${trackCount} songs - ${runtime} minutes
+Favorite Song(s): ${favoriteSongs}
+Least Favorite Song: ${leastFavoriteSong}
+Overall: ${number}/10`;
+
+      document.getElementById('resultBox').value = output;
+    };
+
+    function download(url) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = url.split('/').pop();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    document.getElementById('downloadBtn').onclick = () => {
+      const url = document.getElementById('downloadBtn').getAttribute('data-cover');
+      if (url) {
+        download(url);
+      } else {
+        alert("No album cover URL found!");
+      }
     };
   </script>
 </body>
+</html>

@@ -37,16 +37,24 @@ const totalMillis = trackDurations.reduce((sum, val) => sum + val, 0);
 const runtime = Math.floor(totalMillis / 60000); // convert ms to full minutes
 const trackCount = trackDurations.length;
 
+function download(url) {
+  const a = document.createElement('a')
+  a.href = url
+  a.download = url.split('/').pop()
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
 const output =
   `Album of the Day: ${album} - ${artist}
 Genre: ${albumInfo.primaryGenreName}
 Runtime: ${trackCount} songs - ${runtime} minutes
 Favorite Song(s): ${favoriteSongs}
 Least Favorite Song: ${leastFavoriteSong}
-Number: ${number}
-Album Cover: ${albumInfo.artworkUrl100.replace('100x100bb', '600x600bb')}`;
+Overall: ${number}/10`;
 
-res.json({ output });
+res.json({ output, coverUrl: albumInfo.artworkUrl100.replace('100x100bb', '600x600bb') });
+
 
 });
 
