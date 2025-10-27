@@ -1,0 +1,26 @@
+<!-- index.html -->
+<body>
+  <form id="albumForm">
+    <input name="artist" placeholder="Artist" required>
+    <input name="album" placeholder="Album" required>
+    <input name="favoriteSongs" placeholder="Favorite Songs (comma-separated)" required>
+    <input name="leastFavoriteSong" placeholder="Least Favorite Song" required>
+    <input name="number" type="number" placeholder="Number" required>
+    <button type="submit">Generate Output</button>
+  </form>
+  <textarea id="resultBox" rows="10" cols="60" readonly></textarea>
+  <script>
+    document.getElementById('albumForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const body = Object.fromEntries(formData.entries());
+      const res = await fetch('/albumInfo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const { output } = await res.json();
+      document.getElementById('resultBox').value = output || "Album not found.";
+    };
+  </script>
+</body>
