@@ -46,11 +46,10 @@ function download(url) {
   document.body.removeChild(a)
 }
 const output =
-  `Album of the Day: ${album} - ${artist}
+`Song of the Day: ${album} - ${artist}
 Genre: ${albumInfo.primaryGenreName}
-Runtime: ${trackCount} songs - ${runtime} minutes
-Favorite Song(s): ${favoriteSongs}
-Least Favorite Song: ${leastFavoriteSong}
+Runtime: ${runtime} minutes
+Favorite Lyric: ${favoriteSongs}
 Overall: ${number}/10`;
 
 res.json({ output, coverUrl: albumInfo.artworkUrl100.replace('100x100bb', '600x600bb') });
