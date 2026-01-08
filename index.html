@@ -14,14 +14,12 @@
 <body>
   <form id="albumForm">
     <input name="artist" placeholder="Artist" required>
-    <input name="album" placeholder="Album" required>
-    <input name="favoriteSongs" placeholder="Favorite Songs (comma-separated)" required>
-    <input name="leastFavoriteSong" placeholder="Least Favorite Song" required>
+    <input name="album" placeholder="Song" required>
+    <input name="favoriteSongs" placeholder="Favorite Lyric" required>
     <input name="number" placeholder="Number" required>
     <button type="submit">Generate Output</button>
   </form>
   <textarea id="resultBox" rows="10" cols="60" readonly></textarea>
-  <button id="downloadBtn" type="button" data-cover="">Download Album Cover</button>
 
   <script>
     let coverUrl = "";
@@ -32,20 +30,19 @@
       const artist = formData.get('artist');
       const album = formData.get('album');
       const favoriteSongs = formData.get('favoriteSongs');
-      const leastFavoriteSong = formData.get('leastFavoriteSong');
       const number = formData.get('number');
 
       // First, search for the album to get its collectionId
-      const searchTerm = encodeURIComponent(`${artist} ${album}`);
-      const apiUrl = `https://itunes.apple.com/search?term=${searchTerm}&entity=album&limit=1`;
+      const searchTerm = encodeURIComponent(`${artist} ${song}`);
+      const apiUrl = `https://itunes.apple.com/search?term=${searchTerm}&entity=song&limit=1`;
 
       const response = await fetch(apiUrl);
       const data = await response.json();
 
       if (data.resultCount === 0) {
-        document.getElementById('resultBox').value = "Album not found.";
+        document.getElementById('resultBox').value = "song not found.";
         coverUrl = "";
-        document.getElementById('downloadBtn').setAttribute('data-cover', '');
+        //document.getElementById('downloadBtn').setAttribute('data-cover', '');
         return;
       }
 
@@ -59,7 +56,7 @@
       if (tracksData.resultCount === 0 || tracksData.results.length <= 1) {
         document.getElementById('resultBox').value = "No tracks found for album.";
         coverUrl = "";
-        document.getElementById('downloadBtn').setAttribute('data-cover', '');
+        //document.getElementById('downloadBtn').setAttribute('data-cover', '');
         return;
       }
 
@@ -70,14 +67,13 @@
       const trackCount = trackDurations.length;
 
       coverUrl = albumInfo.artworkUrl100.replace('100x100bb', '600x600bb');
-      document.getElementById('downloadBtn').setAttribute('data-cover', coverUrl);
+      //document.getElementById('downloadBtn').setAttribute('data-cover', coverUrl);
 
       const output =
-`Album of the Day: ${album} - ${artist}
+`Song of the Day: ${album} - ${artist}
 Genre: ${albumInfo.primaryGenreName}
-Runtime: ${trackCount} songs - ${runtime} minutes
-Favorite Song(s): ${favoriteSongs}
-Least Favorite Song: ${leastFavoriteSong}
+Runtime: ${runtime} minutes
+Favorite Lyric: ${favoriteSongs}
 Overall: ${number}/10`;
 
       document.getElementById('resultBox').value = output;
@@ -92,14 +88,14 @@ Overall: ${number}/10`;
       document.body.removeChild(a);
     }
 
-    document.getElementById('downloadBtn').onclick = () => {
-      const url = document.getElementById('downloadBtn').getAttribute('data-cover');
-      if (url) {
-        download(url);
-      } else {
-        alert("No album cover URL found!");
-      }
-    };
+    //document.getElementById('downloadBtn').onclick = () => {
+      //const url = document.getElementById('downloadBtn').getAttribute('data-cover');
+      //if (url) {
+        //download(url);
+       //else {
+        //alert("No album cover URL found!");
+      //}
+    //};
   </script>
 </body>
 </html>
