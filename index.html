@@ -33,7 +33,7 @@
       const number = formData.get('number');
 
       // First, search for the album to get its collectionId
-      const searchTerm = encodeURIComponent(`${artist} ${song}`);
+      const searchTerm = encodeURIComponent(`${artist} ${album}`);
       const apiUrl = `https://itunes.apple.com/search?term=${searchTerm}&entity=song&limit=1`;
 
       const response = await fetch(apiUrl);
